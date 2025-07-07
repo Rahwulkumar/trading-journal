@@ -18,15 +18,19 @@ import {
   Plus,
   PieChart
 } from 'lucide-react';
-import GlassCard from './ui/GlassCard';
-import NeonButton from './ui/NeonButton';
-import TradingButton from './ui/TradingButton';
-import TradingCard from './ui/TradingCard';
-import TradingCalendar from './TradingCalendar';
-import { theme } from '../theme/theme';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from 'recharts';
 
 const Dashboard = () => {
+  // State management
+  const [lastUpdate, setLastUpdate] = useState(new Date());
+  const [selectedAccount, setSelectedAccount] = useState('all');
+  const [isLoading, setIsLoading] = useState(false);
+  const [riskStatus, setRiskStatus] = useState('safe');
+
   // Mock data - replace with your actual data fetching
   const [dashboardData, setDashboardData] = useState({
     accounts: [
@@ -49,61 +53,58 @@ const Dashboard = () => {
       maxAccountDrawdown: 10.0
     },
     recentTrades: [
-      { id: 1, pair: 'EURUSD', direction: 'buy', pnl: 425.75, rMultiple: 2.1, time: '14:32' },
-      { id: 2, pair: 'GBPJPY', direction: 'sell', pnl: -125.50, rMultiple: -0.6, time: '13:15' },
-      { id: 3, pair: 'USDJPY', direction: 'buy', pnl: 310.25, rMultiple: 1.5, time: '12:08' }
+      { id: 1, symbol: 'EURUSD', pnl: 450.75, time: '14:30', direction: 'buy' },
+      { id: 2, symbol: 'GBPUSD', pnl: -125.25, time: '13:45', direction: 'sell' },
+      { id: 3, symbol: 'USDJPY', pnl: 325.50, time: '12:15', direction: 'buy' },
+      { id: 4, symbol: 'AUDUSD', pnl: 275.25, time: '11:30', direction: 'sell' },
+      { id: 5, symbol: 'NZDUSD', pnl: 185.75, time: '10:45', direction: 'buy' }
+    ],
+    chartData: [
+      { name: 'Mon', value: 150.25 },
+      { name: 'Tue', value: 425.75 },
+      { name: 'Wed', value: -125.50 },
+      { name: 'Thu', value: 675.25 },
+      { name: 'Fri', value: 850.75 },
+      { name: 'Sat', value: 275.50 },
+      { name: 'Sun', value: 425.25 }
     ]
   });
 
-  // Use real data if available
   const [realDashboardData, setRealDashboardData] = useState(dashboardData);
-  const [selectedAccount, setSelectedAccount] = useState('all');
-  const [dateRange, setDateRange] = useState('today');
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState(new Date());
 
   // Load real data from localStorage
-  const loadRealData = useCallback(() => {
+  const loadRealData = useCallback(async () => {
     try {
-      const trades = JSON.parse(localStorage.getItem('tradesync_trades') || '[]');
-      const accounts = JSON.parse(localStorage.getItem('tradesync_accounts') || '[]');
+      const trades = JSON.parse(localStorage.getItem('trades') || '[]');
+      const accounts = JSON.parse(localStorage.getItem('accounts') || '[]');
       
-      if (trades.length === 0) {
-        console.log('No trades found, using mock data');
-        setRealDashboardData(dashboardData);
-        return;
-      }
+      const today = new Date().toDateString();
+      const todayTrades = trades.filter(trade => {
+        const tradeDate = new Date(trade.entryDate || trade.createdAt).toDateString();
+        return tradeDate === today;
+      });
 
-      // Calculate real metrics
-      const totalTrades = trades.length;
-      const winningTrades = trades.filter(t => parseFloat(t.pnl || 0) > 0);
-      const totalPnL = trades.reduce((sum, t) => sum + parseFloat(t.pnl || 0), 0);
+      const totalTrades = todayTrades.length;
+      const totalPnL = todayTrades.reduce((sum, trade) => sum + parseFloat(trade.pnl || 0), 0);
+      const winningTrades = todayTrades.filter(trade => parseFloat(trade.pnl || 0) > 0);
       const winRate = totalTrades > 0 ? (winningTrades.length / totalTrades) * 100 : 0;
-      
-      const rMultiples = trades
-        .filter(t => t.r_multiple || t.rMultiple)
-        .map(t => parseFloat(t.r_multiple || t.rMultiple || 0));
-      const averageR = rMultiples.length > 0 
-        ? rMultiples.reduce((sum, r) => sum + r, 0) / rMultiples.length 
-        : 0;
+      const bestTrade = Math.max(...todayTrades.map(trade => parseFloat(trade.pnl || 0)), 0);
+      const worstTrade = Math.min(...todayTrades.map(trade => parseFloat(trade.pnl || 0)), 0);
 
-      const bestTrade = Math.max(...trades.map(t => parseFloat(t.pnl || 0)));
-      const worstTrade = Math.min(...trades.map(t => parseFloat(t.pnl || 0)));
+      const averageR = todayTrades.length > 0 ? 
+        todayTrades.reduce((sum, trade) => sum + parseFloat(trade.rMultiple || 0), 0) / todayTrades.length : 0;
 
-      // Get recent trades
-      const recentTrades = trades.slice(0, 3).map(trade => ({
+      const recentTrades = todayTrades.slice(-5).reverse().map(trade => ({
         id: trade.id,
-        pair: trade.instrument,
+        symbol: trade.symbol,
         pnl: parseFloat(trade.pnl || 0),
-        rMultiple: parseFloat(trade.r_multiple || trade.rMultiple || 0),
-        time: new Date(trade.created_at || trade.date).toLocaleTimeString('en-US', { 
+        time: new Date(trade.entryDate || trade.createdAt).toLocaleTimeString([], { 
           hour: '2-digit', 
           minute: '2-digit' 
         }),
         direction: trade.direction || 'buy'
       }));
 
-      // Calculate active streak
       let activeStreak = 0;
       for (let i = 0; i < trades.length; i++) {
         if (parseFloat(trades[i].pnl || 0) > 0) {
@@ -128,71 +129,60 @@ const Dashboard = () => {
         recentTrades
       }));
 
-      console.log('Dashboard updated with real data:', { totalTrades, totalPnL, winRate });
-
     } catch (error) {
       console.error('Error loading real dashboard data:', error);
       setRealDashboardData(dashboardData);
     }
   }, [dashboardData]);
 
-  // Load data on component mount and when trades update
   useEffect(() => {
     loadRealData();
-
-    // Set up global update function
     window.updateDashboardData = loadRealData;
-
-    // Listen for trade updates
+    
     const handleTradeUpdate = () => {
-      setTimeout(loadRealData, 100); // Small delay to ensure localStorage is updated
+      setTimeout(loadRealData, 100);
     };
 
     window.addEventListener('tradesUpdated', handleTradeUpdate);
-    window.addEventListener('storage', handleTradeUpdate);
 
     return () => {
       window.removeEventListener('tradesUpdated', handleTradeUpdate);
-      window.removeEventListener('storage', handleTradeUpdate);
       delete window.updateDashboardData;
     };
   }, [loadRealData]);
 
-  // Risk status calculation
-  const getRiskStatus = () => {
-    const { dailyDrawdown, maxDailyDrawdown, accountDrawdown, maxAccountDrawdown } = realDashboardData.riskMetrics || {};
+  // Update risk status based on data
+  useEffect(() => {
+    const { dailyDrawdown, maxDailyDrawdown, accountDrawdown, maxAccountDrawdown } = realDashboardData.riskMetrics;
     
     if (dailyDrawdown >= maxDailyDrawdown * 0.8 || accountDrawdown >= maxAccountDrawdown * 0.8) {
-      return 'danger';
+      setRiskStatus('danger');
+    } else if (dailyDrawdown >= maxDailyDrawdown * 0.6 || accountDrawdown >= maxAccountDrawdown * 0.6) {
+      setRiskStatus('warning');
+    } else {
+      setRiskStatus('safe');
     }
-    if (dailyDrawdown >= maxDailyDrawdown * 0.6 || accountDrawdown >= maxAccountDrawdown * 0.6) {
-      return 'warning';
-    }
-    return 'safe';
-  };
-
-  const riskStatus = getRiskStatus();
+  }, [realDashboardData.riskMetrics]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 p-6">
+    <div className="min-h-screen bg-black p-6">
       {/* Header Section */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            <h1 className="text-3xl font-bold text-white mb-2">
               Trading Dashboard
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-gray-400">
               Last updated: {lastUpdate.toLocaleTimeString()}
             </p>
           </div>
           
           <div className="flex items-center space-x-4">
-            {/* Account Filter */}
             <select 
               value={selectedAccount}
               onChange={(e) => setSelectedAccount(e.target.value)}
-              className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+              className="bg-black border border-gray-800 rounded-lg px-4 py-2 text-sm text-white focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Accounts</option>
               {realDashboardData.accounts.map(account => (
@@ -202,11 +192,10 @@ const Dashboard = () => {
               ))}
             </select>
 
-            {/* Refresh Button */}
-            <TradingButton
+            <Button
               variant="secondary"
               size="sm"
-              loading={isLoading}
+              disabled={isLoading}
               onClick={() => {
                 setIsLoading(true);
                 setTimeout(() => {
@@ -214,278 +203,183 @@ const Dashboard = () => {
                   loadRealData();
                 }, 1000);
               }}
+              className="bg-gray-800 hover:bg-gray-700 text-white border-gray-700"
             >
               <RefreshCw size={16} />
-            </TradingButton>
+            </Button>
           </div>
         </div>
       </div>
 
       {/* Risk Alert Banner */}
       {riskStatus !== 'safe' && (
-        <div className={`
-          mb-6 p-4 rounded-lg border-l-4 
-          ${riskStatus === 'danger' 
-            ? 'bg-red-50 dark:bg-red-900/20 border-red-500 text-red-700 dark:text-red-400' 
-            : 'bg-amber-50 dark:bg-amber-900/20 border-amber-500 text-amber-700 dark:text-amber-400'
-          }
-        `}>
-          <div className="flex items-center">
-            <AlertTriangle size={20} className="mr-2" />
-            <span className="font-medium">
-              {riskStatus === 'danger' ? 'CRITICAL: ' : 'WARNING: '}
-              Approaching drawdown limits. Trade with caution.
-            </span>
-          </div>
-        </div>
+        <Card className={`mb-6 border-l-4 bg-black ${riskStatus === 'danger' ? 'border-red-500' : 'border-amber-500'}`}>
+          <CardContent className="p-4">
+            <div className="flex items-center">
+              <AlertTriangle size={20} className={`mr-2 ${riskStatus === 'danger' ? 'text-red-400' : 'text-amber-400'}`} />
+              <span className={`font-medium ${riskStatus === 'danger' ? 'text-red-400' : 'text-amber-400'}`}>
+                {riskStatus === 'danger' ? 'CRITICAL: ' : 'WARNING: '}
+                Approaching drawdown limits. Trade with caution.
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Performance Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Today's P&L */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between">
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {realDashboardData.todayStats.totalPnL > 0 ? '+' : ''}$
-              {realDashboardData.todayStats.totalPnL.toLocaleString()}
+        <Card className="bg-black border-gray-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold text-white">
+                {realDashboardData.todayStats.totalPnL > 0 ? '+' : ''}$
+                {realDashboardData.todayStats.totalPnL.toLocaleString()}
+              </div>
+              <div className={`p-2 rounded-full ${realDashboardData.todayStats.totalPnL > 0 ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
+                {realDashboardData.todayStats.totalPnL > 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+              </div>
             </div>
-            <div className={`
-              p-2 rounded-full
-              ${realDashboardData.todayStats.totalPnL > 0 
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-600' 
-                : 'bg-red-100 dark:bg-red-900/30 text-red-600'
-              }
-            `}>
-              {realDashboardData.todayStats.totalPnL > 0 ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+            <div className="text-sm text-gray-400 mt-2">
+              Today's P&L • {realDashboardData.todayStats.totalTrades} trades
             </div>
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-            Today's P&L • {realDashboardData.todayStats.totalTrades} trades
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* Win Rate */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between">
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {realDashboardData.todayStats.winRate}%
+        <Card className="bg-black border-gray-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold text-white">
+                {realDashboardData.todayStats.winRate}%
+              </div>
+              <Badge variant="secondary" className="bg-gray-800 text-white">
+                Streak: {realDashboardData.todayStats.activeStreak}
+              </Badge>
             </div>
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              Streak: {realDashboardData.todayStats.activeStreak}
+            <div className="text-sm text-gray-400 mt-2">
+              Win Rate • Today's success rate
             </div>
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-            Win Rate • Today's success rate
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* R-Multiple */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-          <div className="flex items-center justify-between">
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {realDashboardData.todayStats.rMultiple > 0 ? '+' : ''}
-              {realDashboardData.todayStats.rMultiple.toFixed(2)}R
+        <Card className="bg-black border-gray-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold text-white">
+                {realDashboardData.todayStats.rMultiple > 0 ? '+' : ''}
+                {realDashboardData.todayStats.rMultiple.toFixed(2)}R
+              </div>
+              <div className={`p-2 rounded-full ${realDashboardData.todayStats.rMultiple > 1 ? 'bg-green-900/30 text-green-400' : 'bg-amber-900/30 text-amber-400'}`}>
+                <Target size={20} />
+              </div>
             </div>
-            <div className={`
-              p-2 rounded-full
-              ${realDashboardData.todayStats.rMultiple > 1 
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-600' 
-                : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600'
-              }
-            `}>
-              <Target size={20} />
+            <div className="text-sm text-gray-400 mt-2">
+              R-Multiple • Risk-to-reward ratio
             </div>
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-            Avg R-Multiple • Risk-reward ratio
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* Risk Status */}
-        <div className={`
-          rounded-lg shadow-lg p-6
-          ${riskStatus === 'safe' ? 'bg-green-50 dark:bg-green-900/20' : 
-            riskStatus === 'warning' ? 'bg-amber-50 dark:bg-amber-900/20' : 
-            'bg-red-50 dark:bg-red-900/20'}
-        `}>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Daily DD:</span>
-              <span className="font-medium">
-                {realDashboardData.riskMetrics?.dailyDrawdown?.toFixed(1) || '0.0'}%
-              </span>
+        <Card className="bg-black border-gray-800">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="text-2xl font-bold text-white">
+                ${Math.abs(realDashboardData.todayStats.bestTrade).toLocaleString()}
+              </div>
+              <div className="p-2 rounded-full bg-blue-900/30 text-blue-400">
+                <Award size={20} />
+              </div>
             </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Account DD:</span>
-              <span className="font-medium">
-                {realDashboardData.riskMetrics?.accountDrawdown?.toFixed(1) || '0.0'}%
-              </span>
+            <div className="text-sm text-gray-400 mt-2">
+              Best Trade • Today's winner
             </div>
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-            Risk Status • Account safety
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Trading Calendar - Full Width */}
-      <div className="mb-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Trading Calendar
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Daily P&L overview
-            </p>
-          </div>
-          <div className="p-6">
-            <TradingCalendar />
-          </div>
-        </div>
-      </div>
-   
-      {/* Account Overview & Recent Trades */}
+      {/* Charts and Recent Trades */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Account Overview */}
         <div className="lg:col-span-2">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Prop Firm Accounts
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Account balances and limits
-              </p>
-            </div>
-            <div className="p-6 space-y-4">
-              {realDashboardData.accounts.map((account) => (
-                <div key={account.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <div>
-                    <div className="font-medium text-gray-900 dark:text-gray-100">
-                      {account.name}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {account.firm}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                      ${account.balance.toLocaleString()}
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Daily Limit: ${account.dailyLimit.toLocaleString()}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <Card className="bg-black border-gray-800">
+            <CardHeader>
+              <CardTitle className="text-white">Weekly Performance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={realDashboardData.chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="name" stroke="#9CA3AF" />
+                  <YAxis stroke="#9CA3AF" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1F2937', 
+                      border: '1px solid #374151',
+                      borderRadius: '8px',
+                      color: '#ffffff'
+                    }} 
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="value" 
+                    stroke="#3B82F6" 
+                    fill="#3B82F6" 
+                    fillOpacity={0.3}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Recent Trades */}
-        <div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Recent Trades
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Latest executions
-              </p>
-            </div>
-            <div className="p-6 space-y-3">
-              {realDashboardData.recentTrades.map((trade) => (
-                <div key={trade.id} className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
-                  <div>
-                    <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
-                      {trade.pair}
-                    </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      {(trade.direction || 'BUY').toUpperCase()} • {trade.time}
+        <Card className="bg-black border-gray-800">
+          <CardHeader>
+            <CardTitle className="text-white">Recent Trades</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {realDashboardData.recentTrades.map(trade => (
+                <div key={trade.id} className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-2 h-2 rounded-full ${trade.pnl > 0 ? 'bg-green-400' : 'bg-red-400'}`} />
+                    <div>
+                      <div className="font-medium text-white">{trade.symbol}</div>
+                      <div className="text-xs text-gray-400">{trade.time}</div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className={`font-medium text-sm ${
-                      trade.pnl > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                    }`}>
-                      {trade.pnl > 0 ? '+' : ''}${trade.pnl}
-                    </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      {trade.rMultiple > 0 ? '+' : ''}{trade.rMultiple}R
-                    </div>
+                  <div className={`font-medium ${trade.pnl > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                    {trade.pnl > 0 ? '+' : ''}${trade.pnl.toFixed(2)}
                   </div>
                 </div>
               ))}
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Quick Actions */}
       <div className="flex items-center space-x-4">
-        <TradingButton 
-          variant="primary" 
-          size="lg"
+        <Button 
           onClick={() => {
-            // Trigger the main App's trade form
             if (window.openTradeForm) {
               window.openTradeForm();
-            } else {
-              // Fallback: dispatch custom event
-              window.dispatchEvent(new CustomEvent('openTradeForm'));
             }
           }}
+          className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
         >
           <DollarSign size={20} className="mr-2" />
           Add Trade
-        </TradingButton>
+        </Button>
         
-        <TradingButton 
-          variant="secondary" 
-          size="lg"
+        <Button 
+          variant="secondary"
           onClick={() => {
-            // Navigate to analytics
             if (window.navigateToPage) {
               window.navigateToPage('analytics');
-            } else {
-              window.dispatchEvent(new CustomEvent('navigateTo', { detail: 'analytics' }));
             }
           }}
+          className="bg-gray-800 hover:bg-gray-700 text-white border-gray-700"
         >
           <BarChart3 size={20} className="mr-2" />
           View Analytics
-        </TradingButton>
-        
-        <TradingButton 
-          variant="secondary" 
-          size="lg"
-          onClick={() => {
-            if (window.navigateToPage) {
-              window.navigateToPage('daily-journal');
-            } else {
-              window.dispatchEvent(new CustomEvent('navigateTo', { detail: 'daily-journal' }));
-            }
-          }}
-        >
-          <Calendar size={20} className="mr-2" />
-          Daily Journal
-        </TradingButton>
-        
-        <TradingButton 
-          variant="ghost" 
-          size="lg"
-          onClick={() => {
-            if (window.navigateToPage) {
-              window.navigateToPage('reports');
-            } else {
-              window.dispatchEvent(new CustomEvent('navigateTo', { detail: 'reports' }));
-            }
-          }}
-        >
-          <PieChart size={20} className="mr-2" />
-          Generate Report
-        </TradingButton>
+        </Button>
       </div>
     </div>
   );

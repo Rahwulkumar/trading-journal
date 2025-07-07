@@ -1,4 +1,4 @@
-// 🚀 App.jsx - Complete TradeSync Application
+// 🚀 App.jsx - Complete TradeSync Application with shadcn/ui
 // Location: App.jsx
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -17,6 +17,14 @@ import {
   User
 } from 'lucide-react';
 
+// Import shadcn/ui components
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger } from '@/components/ui/navigation-menu';
+
 // Import all components
 import Dashboard from './components/Dashboard';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
@@ -29,7 +37,7 @@ import TradeForm from './components/TradeForm';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Import styles
-import './App.css';
+import './globals.css';
 
 const App = () => {
   // State management
@@ -139,16 +147,11 @@ const App = () => {
     }
   }, []);
 
-  // Theme effect
+  // Theme effect - force dark mode
   useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('tradeSyncTheme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('tradeSyncTheme', 'light');
-    }
-  }, [isDarkMode]);
+    document.documentElement.classList.add('dark');
+    localStorage.setItem('tradeSyncTheme', 'dark');
+  }, []);
 
   // Global functions setup
   useEffect(() => {
@@ -167,7 +170,7 @@ const App = () => {
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
-        setIsSidebarOpen(false); // Keep sidebar behavior consistent
+        setIsSidebarOpen(false);
       }
     };
 
@@ -186,12 +189,12 @@ const App = () => {
 
   return (
     <ErrorBoundary>
-      <div className="flex h-screen bg-gray-50 dark:bg-gray-950 overflow-hidden">
+      <div className="flex h-screen bg-black overflow-hidden">
         
         {/* Mobile Sidebar Overlay */}
         {isSidebarOpen && (
           <div 
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 lg:hidden"
             onClick={handleSidebarClose}
             aria-hidden="true"
           />
@@ -201,8 +204,8 @@ const App = () => {
         <aside 
           className={`
             fixed lg:static inset-y-0 left-0 z-50
-            w-64 bg-white dark:bg-gray-900 
-            border-r border-gray-200 dark:border-gray-800
+            w-64 bg-black 
+            border-r border-gray-800
             transform transition-transform duration-300 ease-in-out
             ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
             lg:translate-x-0 lg:block
@@ -210,29 +213,31 @@ const App = () => {
           `}
         >
           {/* Logo/Brand */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
+          <div className="flex items-center justify-between p-6 border-b border-gray-800">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
                 <BarChart3 size={24} className="text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                <h1 className="text-xl font-bold text-white">
                   TradeSync
                 </h1>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
+                <p className="text-xs text-gray-400">
                   Professional Trading Journal
                 </p>
               </div>
             </div>
             
             {/* Close button for mobile */}
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleSidebarClose}
-              className="lg:hidden p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="lg:hidden text-gray-400 hover:text-white hover:bg-gray-800"
               aria-label="Close sidebar"
             >
               <X size={20} />
-            </button>
+            </Button>
           </div>
 
           {/* Navigation */}
@@ -242,56 +247,46 @@ const App = () => {
               const isActive = activeView === item.id;
               
               return (
-                <button
+                <Button
                   key={item.id}
+                  variant={isActive ? "secondary" : "ghost"}
                   onClick={() => handleViewChange(item.id)}
                   className={`
-                    w-full flex items-center space-x-3 px-4 py-3 rounded-xl
-                    text-left transition-all duration-200
+                    w-full flex items-center space-x-3 px-4 py-3 h-auto
+                    text-left justify-start transition-all duration-200
                     ${isActive 
-                      ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 shadow-sm' 
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                      ? 'bg-gray-800 text-white shadow-sm' 
+                      : 'text-gray-300 hover:bg-gray-900 hover:text-white'
                     }
                   `}
                   aria-current={isActive ? 'page' : undefined}
                 >
                   <Icon 
                     size={20} 
-                    className={isActive ? 'text-blue-600 dark:text-blue-400' : ''} 
+                    className={isActive ? 'text-white' : 'text-gray-400'} 
                   />
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 text-left">
                     <div className="font-medium">{item.name}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    <div className="text-xs text-gray-500 truncate">
                       {item.description}
                     </div>
                   </div>
-                </button>
+                </Button>
               );
             })}
           </nav>
 
           {/* Theme Toggle & Settings */}
-          <div className="p-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
-            {/* Theme Toggle */}
-            <button
-              onClick={handleThemeToggle}
-              className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              aria-label={`Switch to ${isDarkMode ? 'light' : 'dark'} mode`}
-            >
-              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-              <span className="font-medium">
-                {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-              </span>
-            </button>
-
+          <div className="p-4 border-t border-gray-800 space-y-2">
             {/* Settings */}
-            <button
-              className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            <Button
+              variant="ghost"
+              className="w-full flex items-center space-x-3 px-4 py-3 h-auto justify-start text-gray-300 hover:bg-gray-900 hover:text-white"
               aria-label="Settings"
             >
               <Settings size={20} />
               <span className="font-medium">Settings</span>
-            </button>
+            </Button>
           </div>
         </aside>
 
@@ -299,24 +294,26 @@ const App = () => {
         <div className="flex-1 flex flex-col min-w-0">
           
           {/* Top Header */}
-          <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4 flex-shrink-0">
+          <header className="bg-black border-b border-gray-800 px-6 py-4 flex-shrink-0">
             <div className="flex items-center justify-between">
               
               {/* Left side - Menu toggle and breadcrumb */}
               <div className="flex items-center space-x-4">
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={handleSidebarToggle}
-                  className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors lg:hidden"
+                  className="text-gray-400 hover:text-white hover:bg-gray-800 lg:hidden"
                   aria-label="Toggle sidebar"
                 >
                   <Menu size={20} />
-                </button>
+                </Button>
                 
                 <nav className="hidden lg:block" aria-label="Breadcrumb">
                   <div className="flex items-center space-x-2 text-sm">
-                    <span className="text-gray-600 dark:text-gray-400">TradeSync</span>
-                    <span className="text-gray-400 dark:text-gray-600">/</span>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">
+                    <span className="text-gray-400">TradeSync</span>
+                    <span className="text-gray-600">/</span>
+                    <span className="font-medium text-white">
                       {activeItem?.name || 'Dashboard'}
                     </span>
                   </div>
@@ -327,14 +324,14 @@ const App = () => {
               <div className="flex items-center space-x-4">
                 
                 {/* Add Trade Button */}
-                <button
+                <Button
                   onClick={handleTradeFormOpen}
-                  className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-lg shadow-sm hover:shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium shadow-sm hover:shadow-md"
                   aria-label="Add new trade"
                 >
                   <TrendingUp size={16} className="mr-2" />
                   Add Trade
-                </button>
+                </Button>
 
                 {/* User Avatar */}
                 <div className="flex items-center space-x-2">
@@ -355,7 +352,7 @@ const App = () => {
           </header>
 
           {/* Main Content */}
-          <main className="flex-1 overflow-auto">
+          <main className="flex-1 overflow-auto bg-black">
             <ErrorBoundary>
               <ActiveComponent />
             </ErrorBoundary>
@@ -363,13 +360,18 @@ const App = () => {
         </div>
 
         {/* Trade Form Modal */}
-        {showTradeForm && (
-          <TradeForm
-            isOpen={showTradeForm}
-            onClose={handleTradeFormClose}
-            onSubmit={handleTradeSubmit}
-          />
-        )}
+        <Dialog open={showTradeForm} onOpenChange={setShowTradeForm}>
+          <DialogContent className="bg-black border-gray-800 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-white">Add New Trade</DialogTitle>
+            </DialogHeader>
+            <TradeForm
+              isOpen={showTradeForm}
+              onClose={handleTradeFormClose}
+              onSubmit={handleTradeSubmit}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </ErrorBoundary>
   );
