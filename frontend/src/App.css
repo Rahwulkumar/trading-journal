@@ -1,0 +1,689 @@
+/* 🎨 App.css - Professional Trading Journal Styles */
+
+/* ===== GLOBAL RESET & BASE STYLES ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  line-height: 1.6;
+  color: #1f2937;
+  background-color: #f9fafb;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dark mode root styles */
+.dark body {
+  color: #f3f4f6;
+  background-color: #030712;
+}
+
+/* ===== PROFESSIONAL TRADING COLORS ===== */
+:root {
+  /* Primary Brand Colors */
+  --color-primary-50: #eff6ff;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+
+  /* Trading Semantic Colors */
+  --color-profit: #22c55e;
+  --color-profit-light: #86efac;
+  --color-profit-dark: #15803d;
+  --color-loss: #ef4444;
+  --color-loss-light: #fca5a5;
+  --color-loss-dark: #dc2626;
+
+  /* Neutral Trading Interface */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  --color-gray-950: #030712;
+
+  /* Advanced Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-trading: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --shadow-profit: 0 0 20px rgba(34, 197, 94, 0.3);
+  --shadow-loss: 0 0 20px rgba(239, 68, 68, 0.3);
+
+  /* Professional Gradients */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-profit: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+  --gradient-loss: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --gradient-neutral: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  --gradient-dark: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  --gradient-trading: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+  /* Animation Durations */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --duration-trading: 250ms;
+
+  /* Easing Functions */
+  --ease-out-cubic: cubic-bezier(0.33, 1, 0.68, 1);
+  --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-trading: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ===== ADVANCED ANIMATIONS ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes bounce {
+
+  0%,
+  100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+@keyframes profitGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(34, 197, 94, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.6);
+  }
+
+  100% {
+    box-shadow: 0 0 5px rgba(34, 197, 94, 0.3);
+  }
+}
+
+@keyframes lossGlow {
+  0% {
+    box-shadow: 0 0 5px rgba(239, 68, 68, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+  }
+
+  100% {
+    box-shadow: 0 0 5px rgba(239, 68, 68, 0.3);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+/* ===== PROFESSIONAL COMPONENT STYLES ===== */
+
+/* Trading Cards */
+.trading-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-gray-200);
+  transition: all var(--duration-normal) var(--ease-out-cubic);
+  position: relative;
+  overflow: hidden;
+}
+
+.dark .trading-card {
+  background: var(--color-gray-900);
+  border-color: var(--color-gray-700);
+}
+
+.trading-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.trading-card.profit {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(21, 128, 61, 0.02) 100%);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+
+.trading-card.loss {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(220, 38, 38, 0.02) 100%);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.trading-card.animated {
+  animation: fadeIn var(--duration-normal) var(--ease-out-cubic);
+}
+
+/* Trading Buttons */
+.trading-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-trading);
+  font-size: 14px;
+  line-height: 1.25;
+  position: relative;
+  overflow: hidden;
+}
+
+.trading-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.trading-button.primary {
+  background: var(--gradient-primary);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.trading-button.primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.trading-button.profit {
+  background: var(--gradient-profit);
+  color: white;
+  box-shadow: var(--shadow-profit);
+}
+
+.trading-button.profit:hover:not(:disabled) {
+  animation: profitGlow 2s infinite;
+}
+
+.trading-button.loss {
+  background: var(--gradient-loss);
+  color: white;
+  box-shadow: var(--shadow-loss);
+}
+
+.trading-button.loss:hover:not(:disabled) {
+  animation: lossGlow 2s infinite;
+}
+
+.trading-button.secondary {
+  background: var(--color-gray-100);
+  color: var(--color-gray-900);
+  border: 1px solid var(--color-gray-300);
+}
+
+.dark .trading-button.secondary {
+  background: var(--color-gray-800);
+  color: var(--color-gray-100);
+  border-color: var(--color-gray-600);
+}
+
+.trading-button.ghost {
+  background: transparent;
+  color: var(--color-gray-700);
+}
+
+.dark .trading-button.ghost {
+  color: var(--color-gray-300);
+}
+
+.trading-button.ghost:hover:not(:disabled) {
+  background: var(--color-gray-100);
+}
+
+.dark .trading-button.ghost:hover:not(:disabled) {
+  background: var(--color-gray-800);
+}
+
+/* Size variants */
+.trading-button.sm {
+  padding: 8px 16px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.trading-button.lg {
+  padding: 16px 32px;
+  font-size: 16px;
+  border-radius: 10px;
+}
+
+/* Trading Inputs */
+.trading-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  color: var(--color-gray-900);
+  transition: all var(--duration-normal) var(--ease-out-cubic);
+}
+
+.dark .trading-input {
+  background: var(--color-gray-800);
+  border-color: var(--color-gray-600);
+  color: var(--color-gray-100);
+}
+
+.trading-input:focus {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.trading-input.error {
+  border-color: var(--color-loss);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.trading-input.success {
+  border-color: var(--color-profit);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+}
+
+/* ===== LAYOUT COMPONENTS ===== */
+
+/* Sidebar */
+.sidebar {
+  background: white;
+  border-right: 1px solid var(--color-gray-200);
+  transition: all var(--duration-normal) var(--ease-out-cubic);
+}
+
+.dark .sidebar {
+  background: var(--color-gray-900);
+  border-right-color: var(--color-gray-800);
+}
+
+.sidebar.collapsed {
+  width: 80px;
+}
+
+.sidebar.expanded {
+  width: 256px;
+}
+
+/* Navigation Items */
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  margin: 4px 8px;
+  border-radius: 8px;
+  color: var(--color-gray-700);
+  text-decoration: none;
+  transition: all var(--duration-fast) var(--ease-out-cubic);
+  cursor: pointer;
+}
+
+.dark .nav-item {
+  color: var(--color-gray-300);
+}
+
+.nav-item:hover {
+  background: var(--color-gray-100);
+  color: var(--color-gray-900);
+}
+
+.dark .nav-item:hover {
+  background: var(--color-gray-800);
+  color: var(--color-gray-100);
+}
+
+.nav-item.active {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--color-primary-600);
+  font-weight: 500;
+}
+
+.dark .nav-item.active {
+  background: rgba(59, 130, 246, 0.2);
+  color: var(--color-primary-400);
+}
+
+/* Header */
+.header {
+  background: white;
+  border-bottom: 1px solid var(--color-gray-200);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dark .header {
+  background: var(--color-gray-900);
+  border-bottom-color: var(--color-gray-800);
+}
+
+/* ===== ADVANCED EFFECTS ===== */
+
+/* Glassmorphism Effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(0, 0, 0, 0.1);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Shimmer Loading Effect */
+.shimmer {
+  background: linear-gradient(90deg,
+      var(--color-gray-200) 0%,
+      var(--color-gray-300) 50%,
+      var(--color-gray-200) 100%);
+  background-size: 400% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.dark .shimmer {
+  background: linear-gradient(90deg,
+      var(--color-gray-800) 0%,
+      var(--color-gray-700) 50%,
+      var(--color-gray-800) 100%);
+}
+
+/* Floating Action Button */
+.fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+  transition: all var(--duration-normal) var(--ease-out-cubic);
+  z-index: 1000;
+}
+
+.fab:hover {
+  transform: scale(1.1);
+  box-shadow: var(--shadow-xl);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+  .trading-card {
+    padding: 16px;
+    margin: 8px;
+  }
+
+  .trading-button {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+
+  .trading-button.lg {
+    padding: 14px 28px;
+    font-size: 15px;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 50;
+    transform: translateX(-100%);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+/* ===== CHART STYLING ===== */
+.recharts-wrapper {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.recharts-cartesian-grid line {
+  stroke: var(--color-gray-200);
+  opacity: 0.5;
+}
+
+.dark .recharts-cartesian-grid line {
+  stroke: var(--color-gray-700);
+}
+
+.recharts-tooltip-wrapper {
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+}
+
+/* ===== SCROLLBAR STYLING ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-gray-100);
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: var(--color-gray-800);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-gray-400);
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--color-gray-600);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-500);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-500);
+}
+
+/* ===== UTILITY CLASSES ===== */
+.fade-in {
+  animation: fadeIn var(--duration-normal) var(--ease-out-cubic);
+}
+
+.slide-in {
+  animation: slideIn var(--duration-normal) var(--ease-out-cubic);
+}
+
+.slide-in-right {
+  animation: slideInRight var(--duration-normal) var(--ease-out-cubic);
+}
+
+.scale-in {
+  animation: scaleIn var(--duration-normal) var(--ease-out-cubic);
+}
+
+.pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.bounce {
+  animation: bounce 1s infinite;
+}
+
+/* Trading-specific utilities */
+.profit-text {
+  color: var(--color-profit);
+}
+
+.loss-text {
+  color: var(--color-loss);
+}
+
+.profit-bg {
+  background-color: rgba(34, 197, 94, 0.1);
+}
+
+.loss-bg {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.trading-shadow {
+  box-shadow: var(--shadow-trading);
+}
+
+.profit-glow {
+  box-shadow: var(--shadow-profit);
+}
+
+.loss-glow {
+  box-shadow: var(--shadow-loss);
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+
+  .sidebar,
+  .fab,
+  .trading-button {
+    display: none !important;
+  }
+
+  .trading-card {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* ===== ACCESSIBILITY ===== */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus styles for keyboard navigation */
+.focus\:ring-2:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .trading-card {
+    border-width: 2px;
+  }
+
+  .trading-button {
+    border-width: 2px;
+    border-style: solid;
+  }
+}
